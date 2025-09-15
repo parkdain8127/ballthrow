@@ -38,7 +38,18 @@ function onImageLoad() {
 for (let i = 0; i < 3; i++) {
   avatars[i] = {};
   playerStates.forEach(state => {
-    avatars[i][state] = loadImage(`assets/player/${state}/${i+1}.png`, onImageLoad);
+    // 상태별 실제 존재하는 이미지 개수
+    let numImages = 1; // 기본 1개
+    if (state === "throw") numImages = 3; // throw만 3개 있음
+
+    if (numImages === 1) {
+      avatars[i][state] = loadImage(`assets/player/${state}/1.png`, onImageLoad);
+    } else {
+      avatars[i][state] = [];
+      for (let j = 1; j <= numImages; j++) {
+        avatars[i][state].push(loadImage(`assets/player/${state}/${j}.png`, onImageLoad));
+      }
+    }
   });
 }
 
@@ -123,7 +134,16 @@ function animateThrow(from, to) {
 function drawPlayers() {
   for (let i = 0; i < players.length; i++) {
     const state = players[i].state;
-    ctx.drawImage(avatars[i][state], players[i].x - 40, players[i].y - 40, 80, 80);
+
+    let img;
+    if (state === "throw") {
+      const imgs = avatars[i][state];
+      img = imgs[Math.floor(Math.random() * imgs.length)];
+    } else {
+      img = avatars[i][state]; // 1개만 있음
+    }
+
+    ctx.drawImage(img, players[i].x - 40, players[i].y - 40, 80, 80); // 캐릭터 크기 확대
     ctx.fillStyle = "black";
     ctx.fillText(players[i].name, players[i].x - 20, players[i].y + 60);
   }

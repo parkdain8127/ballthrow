@@ -5,9 +5,9 @@ canvas.height = 400;
 
 // 플레이어 설정
 let players = [
-  {name: "You", x: 300, y: 350, state: "idle"},
-  {name: "P2", x: 150, y: 150, state: "idle"},
-  {name: "P3", x: 450, y: 150, state: "idle"}
+  {name: "You", x: 300, y: 350, state: "idle", currentThrowImg: null},
+  {name: "P2", x: 150, y: 150, state: "idle", currentThrowImg: null},
+  {name: "P3", x: 450, y: 150, state: "idle", currentThrowImg: null}
 ];
 
 const playerStates = ['idle', 'active', 'throw', 'catch'];
@@ -27,7 +27,7 @@ function loadImage(src, onLoadCallback) {
 function onImageLoad() {
   imagesLoaded++;
   if (imagesLoaded === totalImages) {
-    setTimeout(startGame, 3000);
+    setTimeout(startGame, 3000); // 최소 3초 로딩
   }
 }
 
@@ -60,7 +60,7 @@ const maxThrows = 30;
 // 조건 설정
 let condition = "inclusion"; // "exclusion" 사용 가능
 
-// 참여자가 던질 사람 선택
+// 참여자가 던질 대상 선택
 let userSelected = false;
 let targetPlayer = null;
 
@@ -112,7 +112,7 @@ function throwBall() {
     target = targetPlayer;
     userSelected = false;
     targetPlayer = null;
-  } else { // 나머지 NPC는 자동
+  } else { // NPC 자동 던지기
     if (condition === "inclusion") {
       target = Math.random() < 0.4 ? 0 : (Math.random() < 0.5 ? 1 : 2);
     } else {
@@ -126,38 +126,40 @@ function throwBall() {
   throws++;
 }
 
-// 공 애니메이션 (throw 상태 이미지 순차적으로 표시)
+// 공 애니메이션 (throw 상태 이미지 순차 표시, 각 200ms)
 function animateThrow(from, to) {
   const throwImgs = avatars[from]["throw"]; // 3개 이미지
   let step = 0;
-  const steps = throwImgs.length; // 3단계
+  const steps = throwImgs.length;
   const intervalTime = 200; // 각 이미지 표시 시간(ms)
-  players[from].state = "throw";
 
   const startX = players[from].x;
   const startY = players[from].y;
   const endX = players[to].x;
   const endY = players[to].y;
 
-  const interval = setInterval(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawPlayers();
+  players[from].state = "throw";
 
-    // 공 위치 계산
-    const progress = (step+1)/steps;
+  const interval = setInterval(() => {
+    // 공 위치 진행
+    const progress = (step + 1)/steps;
     ball.x = startX + (endX - startX) * progress;
     ball.y = startY + (endY - startY) * progress;
+
+    // 현재 throw 이미지
+    players[from].currentThrowImg = throwImgs[step];
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPlayers();
     drawBall();
 
-    // throw 이미지 순차 표시
-    players[from].currentThrowImg = throwImgs[step];
-    
     step++;
     if (step >= steps) {
       clearInterval(interval);
       players[to].state = "catch";
       setTimeout(() => { players[to].state = "idle"; }, 1000);
       players[from].state = "idle";
+      players[from].currentThrowImg = null;
       setTimeout(throwBall, 500);
     }
   }, intervalTime);
@@ -169,8 +171,6 @@ function drawPlayers() {
     let img;
     if (players[i].state === "throw" && players[i].currentThrowImg) {
       img = players[i].currentThrowImg;
-    } else if (players[i].state === "throw") {
-      img = avatars[i]["throw"][0];
     } else {
       img = avatars[i][players[i].state];
     }

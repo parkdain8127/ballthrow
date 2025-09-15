@@ -13,23 +13,37 @@ let players = [
 const playerStates = ['idle', 'active', 'throw', 'catch'];
 let avatars = [];
 
-// 이미지 preload
+// 이미지 로딩 관련 변수
 let imagesLoaded = 0;
 const totalImages = 3 * playerStates.length + 1; // 3명 * 4상태 + 공
 
+// 이미지 로딩 함수
+function loadImage(src, onLoadCallback) {
+  const img = new Image();
+  img.src = src;
+  img.onload = onLoadCallback;
+  return img;
+}
+
+// 이미지 로딩 완료 시 호출되는 콜백
+function onImageLoad() {
+  imagesLoaded++;
+  if (imagesLoaded === totalImages) {
+    // 3초 로딩 화면 후 게임 시작
+    setTimeout(startGame, 3000);
+  }
+}
+
+// 플레이어 이미지 로딩
 for (let i = 0; i < 3; i++) {
   avatars[i] = {};
   playerStates.forEach(state => {
-    avatars[i][state] = new Image();
-    avatars[i][state].src = `assets/player/${state}/${i+1}.png`;
-    avatars[i][state].onload = () => { imagesLoaded++; };
+    avatars[i][state] = loadImage(`assets/player/${state}/${i+1}.png`, onImageLoad);
   });
 }
 
-// 공 이미지
-let ballImg = new Image();
-ballImg.src = 'assets/ball.png';
-ballImg.onload = () => { imagesLoaded++; };
+// 공 이미지 로딩
+let ballImg = loadImage('assets/ball.png', onImageLoad);
 
 // 공 정보
 let ball = {x: 300, y: 350, radius: 10, heldBy: 0};
@@ -37,23 +51,16 @@ let throws = 0;
 const maxThrows = 30;
 
 // 조건 설정
-let condition = "inclusion"; // 배척 버전은 "exclusion"
+let condition = "inclusion"; // 배척 버전: "exclusion"
 
-// 게임 시작 체크
-function checkLoadingAndStart() {
-  if (imagesLoaded === totalImages) {
-    setTimeout(() => {
-      document.getElementById("loading-screen").classList.add("hidden");
-      document.getElementById("game-screen").classList.remove("hidden");
-      drawPlayers();
-      drawBall();
-      setTimeout(throwBall, 1000);
-    }, 3000); // 최소 3초 로딩 화면
-  } else {
-    requestAnimationFrame(checkLoadingAndStart);
-  }
+// 게임 시작 함수
+function startGame() {
+  document.getElementById("loading-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.remove("hidden");
+  drawPlayers();
+  drawBall();
+  setTimeout(throwBall, 1000);
 }
-checkLoadingAndStart();
 
 // 공 던지기
 function throwBall() {
@@ -103,11 +110,8 @@ function animateThrow(from, to) {
     if (step > steps) {
       clearInterval(interval);
 
-      // 받는 사람 catch → 1초 후 idle
       players[to].state = "catch";
       setTimeout(() => { players[to].state = "idle"; }, 1000);
-
-      // 던진 사람 idle
       players[from].state = "idle";
 
       setTimeout(throwBall, 1000);
@@ -119,57 +123,7 @@ function animateThrow(from, to) {
 function drawPlayers() {
   for (let i = 0; i < players.length; i++) {
     const state = players[i].state;
-    ctx.drawImage(avatars[i][state], players[i].x - 40, players[i].y - 40, 80, 80); // 캐릭터 크기 확대
-    ctx.fillStyle = "black";
-    ctx.fillText(players[i].name, players[i].x - 20, players[i].y + 60);
-  }
-}
-
-// 이미지 로딩 완료 여부 확인
-let imagesLoaded = 0;
-const totalImages = 3 * playerStates.length + 1; // 3명 * 4상태 + 공
-
-// 이미지 로딩 함수
-function loadImage(src, onLoadCallback) {
-  const img = new Image();
-  img.src = src;
-  img.onload = onLoadCallback;
-  return img;
-}
-
-// 이미지 로딩 완료 시 호출되는 콜백 함수
-function onImageLoad() {
-  imagesLoaded++;
-  if (imagesLoaded === totalImages) {
-    startGame();
-  }
-}
-
-// 이미지 로딩
-for (let i = 0; i < 3; i++) {
-  avatars[i] = {};
-  playerStates.forEach(state => {
-    avatars[i][state] = loadImage(`assets/player/${state}/${i+1}.png`, onImageLoad);
-  });
-}
-
-// 공 이미지 로딩
-ballImg = loadImage('assets/ball.png', onImageLoad);
-
-// 게임 시작 함수
-function startGame() {
-  document.getElementById("loading-screen").classList.add("hidden");
-  document.getElementById("game-screen").classList.remove("hidden");
-  drawPlayers();
-  drawBall();
-  setTimeout(throwBall, 1000);
-}
-
-// 게임 화면 그리기
-function drawPlayers() {
-  for (let i = 0; i < players.length; i++) {
-    const state = players[i].state;
-    ctx.drawImage(avatars[i][state], players[i].x - 40, players[i].y - 40, 80, 80); // 캐릭터 크기 확대
+    ctx.drawImage(avatars[i][state], players[i].x - 40, players[i].y - 40, 80, 80);
     ctx.fillStyle = "black";
     ctx.fillText(players[i].name, players[i].x - 20, players[i].y + 60);
   }
@@ -177,5 +131,5 @@ function drawPlayers() {
 
 // 공 그리기
 function drawBall() {
-  ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+  ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
 }

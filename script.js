@@ -58,7 +58,7 @@ let throws = 0;
 const maxThrows = 30;
 
 // 조건 설정
-let condition = "inclusion"; // "exclusion" 사용 가능
+let condition = "inclusion"; // "exclusion" 가능
 
 // 참여자가 던질 대상 선택
 let userSelected = false;
@@ -88,10 +88,9 @@ function startGame() {
   setTimeout(throwBall, 1000);
 }
 
-// 공 던지기
+// 게임 종료
 function endGame() {
-  // 게임 화면 숨기기
-  document.getElementById("game-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.add("hidden"); // 게임 화면 숨김
 
   // Game Over 표시
   const gameOverDiv = document.createElement("div");
@@ -100,7 +99,7 @@ function endGame() {
   gameOverDiv.style.top = "50%";
   gameOverDiv.style.left = "50%";
   gameOverDiv.style.transform = "translate(-50%, -50%)";
-  gameOverDiv.style.fontSize = "70px";
+  gameOverDiv.style.fontSize = "80px";
   gameOverDiv.style.fontWeight = "bold";
   gameOverDiv.style.textAlign = "center";
   gameOverDiv.style.color = "black";
@@ -109,6 +108,7 @@ function endGame() {
   document.body.appendChild(gameOverDiv);
 }
 
+// 공 던지기
 function throwBall() {
   if (throws >= maxThrows) {
     endGame();
@@ -190,6 +190,7 @@ function drawPlayers() {
     }
     ctx.drawImage(img, players[i].x - 40, players[i].y - 40, 80, 80);
     ctx.fillStyle = "black";
+    ctx.font = "16px Arial";
     ctx.fillText(players[i].name, players[i].x - 20, players[i].y + 60);
   }
 }

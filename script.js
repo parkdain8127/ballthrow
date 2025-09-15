@@ -92,12 +92,22 @@ function startGame() {
 function throwBall() {
   if (throws >= maxThrows) {
     // 게임 종료 처리
-    document.getElementById("game-screen").classList.add("hidden");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black";
-    ctx.font = "50px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
+    document.getElementById("game-screen").classList.add("hidden"); // 게임 화면 숨김
+
+    // 화면 전체에 Game Over 표시
+    const body = document.body;
+    body.innerHTML = ""; // 기존 내용 제거
+    const gameOver = document.createElement("div");
+    gameOver.style.position = "absolute";
+    gameOver.style.top = "50%";
+    gameOver.style.left = "50%";
+    gameOver.style.transform = "translate(-50%, -50%)";
+    gameOver.style.fontSize = "60px";
+    gameOver.style.fontWeight = "bold";
+    gameOver.style.textAlign = "center";
+    gameOver.innerText = "Game Over";
+    body.appendChild(gameOver);
+    
     return;
   }
 

@@ -89,25 +89,29 @@ function startGame() {
 }
 
 // 공 던지기
+function endGame() {
+  // 게임 화면 숨기기
+  document.getElementById("game-screen").classList.add("hidden");
+
+  // Game Over 표시
+  const gameOverDiv = document.createElement("div");
+  gameOverDiv.innerText = "Game Over";
+  gameOverDiv.style.position = "fixed";
+  gameOverDiv.style.top = "50%";
+  gameOverDiv.style.left = "50%";
+  gameOverDiv.style.transform = "translate(-50%, -50%)";
+  gameOverDiv.style.fontSize = "70px";
+  gameOverDiv.style.fontWeight = "bold";
+  gameOverDiv.style.textAlign = "center";
+  gameOverDiv.style.color = "black";
+  gameOverDiv.style.zIndex = "9999";
+
+  document.body.appendChild(gameOverDiv);
+}
+
 function throwBall() {
   if (throws >= maxThrows) {
-    // 게임 종료 처리
-    document.getElementById("game-screen").classList.add("hidden"); // 게임 화면 숨김
-
-    // 화면 전체에 Game Over 표시
-    const body = document.body;
-    body.innerHTML = ""; // 기존 내용 제거
-    const gameOver = document.createElement("div");
-    gameOver.style.position = "absolute";
-    gameOver.style.top = "50%";
-    gameOver.style.left = "50%";
-    gameOver.style.transform = "translate(-50%, -50%)";
-    gameOver.style.fontSize = "60px";
-    gameOver.style.fontWeight = "bold";
-    gameOver.style.textAlign = "center";
-    gameOver.innerText = "Game Over";
-    body.appendChild(gameOver);
-    
+    endGame();
     return;
   }
 

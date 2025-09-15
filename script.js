@@ -125,6 +125,56 @@ function drawPlayers() {
   }
 }
 
+// 이미지 로딩 완료 여부 확인
+let imagesLoaded = 0;
+const totalImages = 3 * playerStates.length + 1; // 3명 * 4상태 + 공
+
+// 이미지 로딩 함수
+function loadImage(src, onLoadCallback) {
+  const img = new Image();
+  img.src = src;
+  img.onload = onLoadCallback;
+  return img;
+}
+
+// 이미지 로딩 완료 시 호출되는 콜백 함수
+function onImageLoad() {
+  imagesLoaded++;
+  if (imagesLoaded === totalImages) {
+    startGame();
+  }
+}
+
+// 이미지 로딩
+for (let i = 0; i < 3; i++) {
+  avatars[i] = {};
+  playerStates.forEach(state => {
+    avatars[i][state] = loadImage(`assets/player/${state}/${i+1}.png`, onImageLoad);
+  });
+}
+
+// 공 이미지 로딩
+ballImg = loadImage('assets/ball.png', onImageLoad);
+
+// 게임 시작 함수
+function startGame() {
+  document.getElementById("loading-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.remove("hidden");
+  drawPlayers();
+  drawBall();
+  setTimeout(throwBall, 1000);
+}
+
+// 게임 화면 그리기
+function drawPlayers() {
+  for (let i = 0; i < players.length; i++) {
+    const state = players[i].state;
+    ctx.drawImage(avatars[i][state], players[i].x - 40, players[i].y - 40, 80, 80); // 캐릭터 크기 확대
+    ctx.fillStyle = "black";
+    ctx.fillText(players[i].name, players[i].x - 20, players[i].y + 60);
+  }
+}
+
 // 공 그리기
 function drawBall() {
   ctx.drawImage(ballImg, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);

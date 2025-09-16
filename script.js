@@ -27,7 +27,7 @@ function loadImage(src, onLoadCallback) {
 function onImageLoad() {
   imagesLoaded++;
   if (imagesLoaded === totalImages) {
-    setTimeout(startGame, 3000); // 최소 3초 로딩
+    setTimeout(startGame, 5000); // 최소 5초 로딩
   }
 }
 
@@ -59,6 +59,10 @@ const maxThrows = 30;
 
 // 조건 설정
 let condition = "inclusion"; // "exclusion" 가능
+
+// NPC 제약 관리 변수
+let npcChainCount = 0;
+let lastNpcPair = null;
 
 // 참여자가 던질 대상 선택
 let userSelected = false;
@@ -118,7 +122,8 @@ function throwBall() {
   let current = ball.heldBy;
   let target;
 
-  if (current === 0) { // 참여자가 공을 가지고 있으면 선택 대기
+  if (current === 0) { 
+    // 참가자가 공을 가지고 있으면 선택 대기
     if (!userSelected) {
       requestAnimationFrame(throwBall);
       return;
@@ -126,10 +131,37 @@ function throwBall() {
     target = targetPlayer;
     userSelected = false;
     targetPlayer = null;
-  } else { // NPC 자동 던지기
+    npcChainCount = 0; // NPC 체인 초기화
+    lastNpcPair = null;
+  } else { 
+    // NPC 자동 던지기
     if (condition === "inclusion") {
-      target = Math.random() < 0.4 ? 0 : (Math.random() < 0.5 ? 1 : 2);
+      // 마지막 패스는 반드시 참가자에게
+      if (throws === maxThrows - 1) {
+        target = 0;
+      } else {
+        do {
+          target = Math.random() < 0.4 ? 0 : (Math.random() < 0.5 ? 1 : 2);
+
+          if (target === 0) {
+            // 참가자에게 가면 체인 초기화
+            npcChainCount = 0;
+            lastNpcPair = null;
+            break;
+          } else {
+            // NPC → NPC
+            const newPair = [current, target].sort().join("-");
+            if (newPair === lastNpcPair) {
+              npcChainCount++;
+            } else {
+              npcChainCount = 1;
+              lastNpcPair = newPair;
+            }
+          }
+        } while (npcChainCount > 3); // 같은 NPC 간 연속 3회 이상 불가
+      }
     } else {
+      // exclusion 로직 (기존 유지)
       if (throws < 6) target = Math.random() < 0.2 ? 0 : (Math.random() < 0.5 ? 1 : 2);
       else target = Math.random() < 0.05 ? 0 : (Math.random() < 0.5 ? 1 : 2);
     }

@@ -27,7 +27,7 @@ function loadImage(src, onLoadCallback) {
 function onImageLoad() {
   imagesLoaded++;
   if (imagesLoaded === totalImages) {
-    setTimeout(startGame, 5000); // 최소 5초 로딩
+    setTimeout(startGame, 5000);
   }
 }
 
@@ -122,7 +122,7 @@ function throwBall() {
   let target;
 
   if (current === 0) {
-    // 참가자가 공을 가지고 있을 때
+    // 참여자가 공을 가지고 있음
     if (!userSelected) {
       requestAnimationFrame(throwBall);
       return;
@@ -137,30 +137,37 @@ function throwBall() {
     ball.heldBy = target;
     throws++;
   } else {
-    // NPC가 공을 가지고 있을 때
+    // NPC가 공을 가지고 있음
     if (throws === maxThrows - 1) {
-      // 마지막은 반드시 참가자
+      // 마지막은 반드시 참여자
       target = 0;
       participantChainCount = 1;
     } else if (inclusionThrows.includes(throws + 1)) {
+      // 초반 강제 패스
       target = 0;
       participantChainCount = 1;
     } else {
+      // NPC → NPC 선택, 연속 제한 적용
       let attempts = 0;
       do {
-        // NPC → NPC 랜덤
+        // NPC → NPC 선택
         target = current === 1 ? 2 : 1;
+
+        // NPC 연속 패스 제한
         const newPair = [current, target].sort().join("-");
         if (newPair === lastNpcPair) npcChainCount++;
         else { npcChainCount = 1; lastNpcPair = newPair; }
 
-        // NPC → 참여자 연속 4회 제한
-        if (participantChainCount >= 4) {
-          target = current === 1 ? 2 : 1;
-        }
+        // NPC → 참여자 연속 제한 적용
+        if (participantChainCount >= 4) target = current === 1 ? 2 : 1;
 
         attempts++;
-        if (attempts > 10) break;
+        if (attempts > 10) {
+          // 반복해도 조건 만족 못하면 무조건 참여자
+          target = 0;
+          participantChainCount = 1;
+          break;
+        }
       } while (npcChainCount > 3);
     }
 

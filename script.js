@@ -122,7 +122,7 @@ function throwBall() {
   let target;
 
   if (current === 0) {
-    // 참가자가 공을 가지고 있으면 선택 대기
+    // 참가자가 공을 가지고 있을 때
     if (!userSelected) {
       requestAnimationFrame(throwBall);
       return;
@@ -148,7 +148,7 @@ function throwBall() {
     } else {
       let attempts = 0;
       do {
-        // NPC끼리 연속 3회 제한
+        // NPC → NPC 랜덤
         target = current === 1 ? 2 : 1;
         const newPair = [current, target].sort().join("-");
         if (newPair === lastNpcPair) npcChainCount++;
@@ -164,7 +164,6 @@ function throwBall() {
       } while (npcChainCount > 3);
     }
 
-    // NPC 고민 시간 랜덤 0.5~2초
     const thinkTime = 500 + Math.random() * 1500;
     setTimeout(() => {
       if (target === 0) participantChainCount++;

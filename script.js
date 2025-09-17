@@ -15,7 +15,7 @@ let avatars = [];
 
 // 이미지 로딩
 let imagesLoaded = 0;
-const totalImages = 3 * playerStates.length + 1; // 3명 * 4상태 + 공
+const totalImages = 3 * playerStates.length + 1;
 
 function loadImage(src, onLoadCallback) {
   const img = new Image();
@@ -55,19 +55,22 @@ let ball = {x: 300, y: 350, radius: 10, heldBy: 0};
 let throws = 0;
 const maxThrows = 30;
 
-// 참가자 초반 수신 횟수 (inclusion condition)
+// 참가자 초반 수신 횟수
 const inclusionThrows = [1, 3, 5, 8, 11, 14];
 
 // NPC 연속 패스 제한
 let npcChainCount = 0;
 let lastNpcPair = null;
 
+// 참여자 연속 수신 제한
+let participantChainCount = 0;
+
 // 참여자가 던질 대상 선택
 let userSelected = false;
 let targetPlayer = null;
 
 canvas.addEventListener('click', (e) => {
-  if (players[0].state !== "idle") return; // 던지는 중 선택 불가
+  if (players[0].state !== "idle") return;
   const rect = canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
@@ -129,39 +132,44 @@ function throwBall() {
     targetPlayer = null;
     npcChainCount = 0;
     lastNpcPair = null;
-
+    participantChainCount++;
     animateThrow(current, target);
     ball.heldBy = target;
     throws++;
   } else {
-    // NPC 자동 던지기
-    if (inclusionThrows.includes(throws + 1)) {
-      target = 0; // 강제 참가자 패스
+    // NPC가 공을 가지고 있을 때
+    if (throws === maxThrows - 1) {
+      // 마지막은 반드시 참가자
+      target = 0;
+      participantChainCount = 1;
+    } else if (inclusionThrows.includes(throws + 1)) {
+      target = 0;
+      participantChainCount = 1;
     } else {
-      // NPC → NPC 랜덤, 연속 3회 제한
       let attempts = 0;
       do {
-        // 현재 NPC 제외하고 참가자 포함 가능
-        const possibleTargets = [0, 1, 2].filter(i => i !== current);
-        target = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
-
+        // NPC끼리 연속 3회 제한
+        target = current === 1 ? 2 : 1;
         const newPair = [current, target].sort().join("-");
         if (newPair === lastNpcPair) npcChainCount++;
         else { npcChainCount = 1; lastNpcPair = newPair; }
 
-        attempts++;
-        if (attempts > 20) {
-          target = 0; // 안전장치: 20회 시도 후 참가자에게 패스
-          npcChainCount = 0;
-          lastNpcPair = null;
-          break;
+        // NPC → 참여자 연속 4회 제한
+        if (participantChainCount >= 4) {
+          target = current === 1 ? 2 : 1;
         }
+
+        attempts++;
+        if (attempts > 10) break;
       } while (npcChainCount > 3);
     }
 
     // NPC 고민 시간 랜덤 0.5~2초
     const thinkTime = 500 + Math.random() * 1500;
     setTimeout(() => {
+      if (target === 0) participantChainCount++;
+      else participantChainCount = 0;
+
       animateThrow(current, target);
       ball.heldBy = target;
       throws++;

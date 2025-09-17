@@ -133,6 +133,10 @@ function throwBall() {
     targetPlayer = null;
     npcChainCount = 0; // NPC 체인 초기화
     lastNpcPair = null;
+
+    animateThrow(current, target);
+    ball.heldBy = target;
+    throws++;
   } else { 
     // NPC 자동 던지기
     if (condition === "inclusion") {
@@ -144,12 +148,10 @@ function throwBall() {
           target = Math.random() < 0.4 ? 0 : (Math.random() < 0.5 ? 1 : 2);
 
           if (target === 0) {
-            // 참가자에게 가면 체인 초기화
             npcChainCount = 0;
             lastNpcPair = null;
             break;
           } else {
-            // NPC → NPC
             const newPair = [current, target].sort().join("-");
             if (newPair === lastNpcPair) {
               npcChainCount++;
@@ -158,26 +160,31 @@ function throwBall() {
               lastNpcPair = newPair;
             }
           }
-        } while (npcChainCount > 3); // 같은 NPC 간 연속 3회 이상 불가
+        } while (npcChainCount > 3);
       }
     } else {
-      // exclusion 로직 (기존 유지)
+      // exclusion 로직
       if (throws < 6) target = Math.random() < 0.2 ? 0 : (Math.random() < 0.5 ? 1 : 2);
       else target = Math.random() < 0.05 ? 0 : (Math.random() < 0.5 ? 1 : 2);
     }
-  }
 
-  animateThrow(current, target);
-  ball.heldBy = target;
-  throws++;
+    // NPC 고민 시간 (0.5~2초 랜덤)
+    const thinkTime = 500 + Math.random() * 1500;
+
+    setTimeout(() => {
+      animateThrow(current, target);
+      ball.heldBy = target;
+      throws++;
+    }, thinkTime);
+  }
 }
 
 // 공 애니메이션 (throw 상태 이미지 순차 표시, 각 200ms)
 function animateThrow(from, to) {
-  const throwImgs = avatars[from]["throw"]; // 3개 이미지
+  const throwImgs = avatars[from]["throw"];
   let step = 0;
   const steps = throwImgs.length;
-  const intervalTime = 200; // 각 이미지 표시 시간(ms)
+  const intervalTime = 200;
 
   const startX = players[from].x;
   const startY = players[from].y;
@@ -187,12 +194,10 @@ function animateThrow(from, to) {
   players[from].state = "throw";
 
   const interval = setInterval(() => {
-    // 공 위치 진행
-    const progress = (step + 1)/steps;
+    const progress = (step + 1) / steps;
     ball.x = startX + (endX - startX) * progress;
     ball.y = startY + (endY - startY) * progress;
 
-    // 현재 throw 이미지
     players[from].currentThrowImg = throwImgs[step];
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
